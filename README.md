@@ -174,12 +174,58 @@ All payment testing was performed in Stripe Sandbox mode without processing real
 
 Done locally and verified: auth, upload/export, agent with live OpenAI, Fact Bank, credit rules (no charge on errors or ungrounded results), basic rate limiting, 26 automated tests, baseline-vs-agent eval (`eval/results.md`).
 
-**Still to do (deployment owner):**
-1. **Public URL.** Deploy (Render template in `render.yaml`, or any host). Set `OPENAI_API_KEY`, `APP_BASE_URL` (public https origin, no trailing slash) and `COOKIE_SECURE=true` as host-side secrets. `render.yaml` does **not** yet declare `APP_BASE_URL` or the secrets.
-2. **Persistent storage.** SQLite on an ephemeral disk loses users, credits, history and the Fact Bank on every redeploy. Mount a persistent disk (set `DATABASE_PATH`) or migrate to managed Postgres.
-3. **Stripe test mode end to end.** Set `STRIPE_SECRET_KEY` (test key) and `STRIPE_WEBHOOK_SECRET`; register `https://<host>/api/billing/webhook` for `checkout.session.completed`; pay with test card `4242 4242 4242 4242` and confirm credits +5 and that a replayed webhook does not double-grant. Locally this needs the Stripe CLI (`stripe listen --forward-to localhost:8001/api/billing/webhook`). Also test a declined/cancelled checkout. **Never run Stripe live keys.**
-4. **Demo-path rehearsal on the deployed URL:** sign up → tailor → exhaust the free credits → test payment → tailor again.
-5. **Known limitations to be honest about:** in-memory rate limiter is per process; the agent makes ~5–9 sequential model calls (roughly 10–60 s); BM25 retrieval is keyword-based (embeddings are the next upgrade in `retrieve()`); no email verification; without `OPENAI_API_KEY` the server silently runs the rule-based demo (the UI badge says so).
-6. **Write-up (4–5 pages)** and a standalone architecture diagram image (a mermaid diagram is in `CAPSTONE_PRESENTATION.md`).
+## Implementation Status & Future Improvements
 
-**Security:** `.env` is git-ignored; never commit it. Any API key that has been pasted into chats, screenshots or terminals should be rotated before the public deployment.
+### Completed Implementation
+
+ResumeFit has been successfully implemented and deployed as a publicly accessible AI-powered resume tailoring application.
+
+**Core Application Features**
+- User registration, login, and session management.
+- Resume upload, AI-powered analysis, and Word export.
+- Multi-step AI agent for job requirement extraction, evidence retrieval, resume rewriting, and verification.
+- Fact Bank, analysis history, and credit management.
+- Automated testing and baseline-versus-agent evaluation.
+
+**Deployment & Infrastructure**
+- Deployed the FastAPI application on Render with a public HTTPS URL.
+- Configured server-side OpenAI API integration and environment variables.
+- Implemented persistent SQLite storage using a 1 GB Render Persistent Disk.
+- Verified that user accounts, analysis history, and credits remain available after redeployment.
+
+**Stripe Payment Integration**
+- Integrated Stripe Sandbox Checkout for simulated credit purchases.
+- Configured a secure webhook for `checkout.session.completed`.
+- Successfully tested a $4.99 simulated purchase of 5 AI credits.
+- Verified that the webhook returned HTTP 200 OK and automatically updated the user's balance from 2 to 7 credits.
+- All payment testing was performed in Sandbox mode without processing real payments.
+
+**Live Application:** https://resumefit-xrcw.onrender.com
+
+### Testing & Evaluation
+
+The deployed application has been manually tested for user authentication, AI-powered resume tailoring, result storage, payment processing, and database persistence.
+
+The AI agent is designed to ground rewritten resume bullets in existing user-provided evidence rather than inventing qualifications. The repository also includes automated tests and an evaluation framework comparing the baseline model with the multi-step agent.
+
+Additional validation is recommended for unsuccessful or canceled payments, duplicate webhook events, and the complete user journey under different input conditions.
+
+### Limitations & Future Improvements
+
+Although the core application is functional, several improvements could enhance its reliability, scalability, and user experience:
+
+1. **AI Performance:** Optimize multi-step LLM calls to reduce response latency and API costs.
+2. **Retrieval Quality:** Explore embedding-based semantic retrieval to complement the existing BM25 approach.
+3. **Security:** Add email verification, stronger rate limiting, and additional protections for user data.
+4. **Scalability:** Consider migrating from SQLite to a managed database for larger-scale deployment.
+5. **Payment Reliability:** Expand testing for failed transactions, webhook retries, and duplicate event handling.
+6. **User Experience:** Improve resume formatting customization and provide more detailed feedback on job requirement coverage.
+
+### Conclusion
+
+ResumeFit demonstrates an end-to-end AI product that combines practical business value, evidence-grounded LLM reasoning, web application development, persistent data storage, and simulated payment processing.
+
+The deployed MVP validates the feasibility of AI-assisted resume tailoring while providing a foundation for future improvements in AI accuracy, system reliability, and production readiness.
+
+**Security Note:** API keys and payment credentials are stored as server-side environment variables and must never be committed to the public repository. Stripe remains in Sandbox mode; additional security and operational safeguards are required before enabling real payments.
+
