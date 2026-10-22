@@ -107,7 +107,54 @@ Browser (responsive HTML + CSS + JavaScript)
 
 ## Deployment
 
-The project includes `render.yaml` as a **starting template**. The user must configure their own hosting, HTTPS origin, secrets and **persistent database**. Set `APP_BASE_URL`, `COOKIE_SECURE=true` and `OPENAI_API_KEY` server-side. SQLite on an ephemeral Render instance is not suitable for persistent user history: mount a persistent disk or migrate to a managed relational database. Test your deployed version before sharing it with a professor.
+**Live Website:** https://resumefit-xrcw.onrender.com
+
+ResumeFit is deployed on Render as a publicly accessible FastAPI web application.
+
+### Technology Stack
+- **Hosting:** Render
+- **Backend:** Python, FastAPI, Uvicorn
+- **Frontend:** HTML, CSS, JavaScript
+- **AI:** OpenAI API (`gpt-4.1-mini`)
+- **Database:** SQLite with a 1 GB Render Persistent Disk
+- **Payments:** Stripe Sandbox Checkout and Webhooks
+
+### Deployment Configuration
+
+**Build Command:**
+`pip install -r requirements.txt`
+
+**Start Command:**
+`uvicorn server:app --host 0.0.0.0 --port $PORT`
+
+**Environment Variables:**
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `APP_BASE_URL`
+- `COOKIE_SECURE=true`
+- `DATABASE_PATH=/var/data/resumefit.db`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+All API keys and secrets are configured securely through Render environment variables and are not committed to GitHub.
+
+### Deployment Testing
+
+The following functionality has been successfully tested:
+
+- Public HTTPS website access
+- User registration and authentication
+- Live AI-powered resume tailoring
+- Persistent user history and credits after redeployment
+- Stripe Sandbox Checkout ($4.99 for 5 AI credits)
+- Successful Stripe Webhook delivery (`checkout.session.completed`, HTTP 200)
+- Automatic credit update from 2 to 7 credits after test payment
+
+**Stripe Webhook Endpoint:**
+`https://resumefit-xrcw.onrender.com/api/billing/webhook`
+
+All payment testing was performed in Stripe Sandbox mode without processing real payments.
+
 
 ## Files
 
